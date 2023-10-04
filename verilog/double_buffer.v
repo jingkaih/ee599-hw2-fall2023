@@ -28,7 +28,58 @@ module double_buffer
   // the bank you are writing on the clock edge.
 
   // Your code starts here
+  
+  // define the double buffer's full address space to be the double of each bank's addr space
+  // note that FULL_ADDR_WIDTH should be the address space of the sram_sync_1r1w instance
+  parameter FULL_ADDR_WIDTH = BANK_ADDR_WIDTH + 1;
+  // define state variable current_bank
+  reg current_bank;
+  // define wadr and radr which are mutually exclusive,
+  // i.e., I have this: (4 addresses each bank so BANK_ADDR_WIDTH = 2 but I will have to instantiate a 8 addresses SRAM )
+  //                        bank0
+  //                        bank0
+  // bank0 | bank1          bank0
+  // bank0 | bank1          bank0
+  // bank0 | bank1  ==>     bank1
+  // bank0 | bank1          bank1
+  //                        bank1
+  //                        bank1
+  wire [FULL_ADDR_WIDTH - 1 : 0] wadr_actual;
+  wire [FULL_ADDR_WIDTH - 1 : 0] radr_actual;
 
+  always @( * ) begin
+    if( cur_bank == 1'b0 ) begin
+      wadr_actual = wadr;
+      radr_actual = radr + BANK_DEPTH;
+    end 
+    else begin
+      wadr_actual = wadr + BANK_DEPTH;
+      radr_actual = radr;
+    end
+  end
+  // SRAM instance
+  ram_sync_1r1w
+  #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .ADDR_WIDTH(FULL_ADDR_WIDTH),
+    .DEPTH(2 * BANK_DEPTH)// SRAM should have depth = 2*bank depth
+  )
+  ram_instance (
+    .clk(clk),
+    .wen(wen),
+    .wadr(wadr_actual),
+    .wdata(wdata),
+    .ren(ren),
+    .radr(radr_actual),
+    .rdata(rdata)
+  );
+
+  always @( posedge clk or negedge rst_n ) begin
+    if ( !rst_n )
+      current_bank <= 0;
+    else if ( switch_banks )
+      current_bank <= ~current_bank;
+  end
  
   // Your code ends here
 endmodule
