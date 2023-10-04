@@ -44,6 +44,8 @@ module double_buffer
   // bank0 | bank1          bank1
   //                        bank1
   //                        bank1
+  // Once reset, the SRAM will be configured as bank0-write, bank1-read
+  // On the first switch_banks press after reset, we get bank0-read, bank1-write
   wire [FULL_ADDR_WIDTH - 1 : 0] wadr_actual;
   wire [FULL_ADDR_WIDTH - 1 : 0] radr_actual;
 
