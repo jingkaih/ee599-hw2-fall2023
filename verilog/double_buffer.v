@@ -48,7 +48,7 @@ module double_buffer
   wire [FULL_ADDR_WIDTH - 1 : 0] radr_actual;
 
   always @( * ) begin
-    if( cur_bank == 1'b0 ) begin
+    if( current_bank == 1'b0 ) begin
       wadr_actual = wadr;
       radr_actual = radr + BANK_DEPTH;
     end 
